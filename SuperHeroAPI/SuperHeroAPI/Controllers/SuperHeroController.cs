@@ -8,17 +8,6 @@ namespace SuperHeroAPI.Controllers
     public class SuperHeroController : ControllerBase
     {
         
-        private static List<SuperHero> heroes = new List<SuperHero>
-            {
-                new SuperHero
-                {
-                    Id = 2,
-                    Name = "Iron Man",
-                    FirstName = "Tony",
-                    LastName = "Stark",
-                    Place = "Long Island"
-                }
-            };
         private readonly DataContext _dataContext;
 
         public SuperHeroController(DataContext dataContext)
