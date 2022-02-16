@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,15 +23,18 @@ namespace SuperHeroAPI.Controllers
             _dataContext = dataContext;
         }
 
-        [HttpPost("register")]
+        [HttpPost("register")] // , Authorize(Roles = "Admin")
         public async Task<ActionResult<User>> Register(UserDto request)
         {
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            Role role = _dataContext.Roles.Find(request.RoleId);
+            
             var user = new User
             {
                 Username = request.Username,
                 PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
+                PasswordSalt = passwordSalt,
+                Role = role 
             };
 
             // Add the user to the database and save the changes
@@ -63,11 +67,19 @@ namespace SuperHeroAPI.Controllers
             return Ok(token);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<User>> Get()
+        {
+            // If you don't .Include() the Role, null will be returned instead
+            return Ok(await _dataContext.Users.Include(user => user.Role).ToListAsync());
+        }
+
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role.Name)
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(

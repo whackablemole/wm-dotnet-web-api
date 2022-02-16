@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SuperHeroAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SuperHeroController : ControllerBase
     {
         
@@ -15,6 +17,7 @@ namespace SuperHeroAPI.Controllers
             _dataContext = dataContext;
         }
 
+        // Allow anonymous means that this route isn't protected by authorisation.
         [HttpGet]
         public async Task<ActionResult<List<SuperHero>>> Get()
         {
@@ -31,7 +34,7 @@ namespace SuperHeroAPI.Controllers
             return Ok(await _dataContext.SuperHeroes.ToListAsync());
         }
 
-        [HttpPost]
+        [HttpPost, Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<SuperHero>>> AddHero(SuperHero hero)
         {
             _dataContext.SuperHeroes.Add(hero);
@@ -40,6 +43,8 @@ namespace SuperHeroAPI.Controllers
         }
 
         [HttpPut]
+        // Can also put this if you want to protect just one route:
+        // [HttpPut, Authorize]
         public async Task<ActionResult<List<SuperHero>>> UpdateHero(SuperHero request)
         {
             var dbhero = await _dataContext.SuperHeroes.FindAsync(request.Id);
