@@ -50,7 +50,7 @@ namespace SuperHeroAPI.Controllers
         public async Task<ActionResult<string>> Login(UserDto request)
         {
 
-            var dbUser = await _dataContext.Users.FindAsync(request.Username);
+            var dbUser = await _dataContext.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Username == request.Username);
             if (dbUser == null)
             {
                 return BadRequest("User not found");
